@@ -1,0 +1,43 @@
+runner: 'VGMRunner'
+scene_data: 'gibson'
+BASE_TASK_CONFIG_PATH: "configs/vistargetnav_gibson.yaml"
+IL_TRAINER_NAME: "BC_trainer"
+RL_TRAINER_NAME: "PPOTrainer_Memory_aux"
+ENV_NAME: "SearchEnv"
+
+SIMULATOR_GPU_ID: 1
+TORCH_GPU_ID: 0
+
+NUM_PROCESSES: 2
+NUM_VAL_PROCESSES: 0
+
+SENSORS: ["DEPTH_SENSOR", "RGB_SENSOR"]
+
+LOG_INTERVAL: 1
+CHECKPOINT_INTERVAL: 200
+VIS_INTERVAL: 200
+
+OBS_TO_SAVE: ['global_memory', 'global_mask', 'global_A', 'global_time',
+              'panoramic_rgb', 'panoramic_depth','goal_embedding', 'episode_info', 'target_goal',
+              'step', 'have_been', 'target_dist_score']
+POLICY: 'VGMPolicy'
+WRAPPER: 'GraphWrapper'
+REWARD_METHOD: 'progress'
+USE_AUXILIARY_INFO: True
+
+BC:
+  batch_size: 12
+RL:
+  SUCCESS_REWARD: 10.0
+  SUCESS_MEASURE: 'SUCCESS'
+  SLACK_REWARD: -0.01
+  PPO:
+    num_mini_batch: 2
+    num_steps: 256
+
+    pretrained_weights: "data/best_ckpts/0915_gmt_pcl_aux2_best.pt"
+    rl_pretrained: False
+    il_pretrained: True
+    pretrained_encoder: False
+    train_encoder: True
+    reset_critic: False
