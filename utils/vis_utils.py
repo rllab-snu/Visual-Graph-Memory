@@ -152,12 +152,13 @@ def observations_to_image(observation: Dict, info: Dict, mode='panoramic', local
         rgb = observation["rgb"]
         if not isinstance(rgb, np.ndarray):
             rgb = rgb.cpu().numpy()
-
+        rgb = cv2.putText(np.ascontiguousarray(rgb), 'current_obs',(5,10),cv2.FONT_HERSHEY_SIMPLEX,0.4,(255,255,255))
         egocentric_view.append(rgb)
     elif "panoramic_rgb" in observation and mode == 'panoramic':
         rgb = observation['panoramic_rgb']
         if not isinstance(rgb, np.ndarray):
             rgb = rgb.cpu().numpy()
+        rgb = cv2.putText(np.ascontiguousarray(rgb), 'current_obs',(5,10),cv2.FONT_HERSHEY_SIMPLEX,0.4,(255,255,255))
         egocentric_view.append(rgb)
 
     if "target_goal" in observation and len(observation['target_goal']) > 0:
@@ -170,16 +171,9 @@ def observations_to_image(observation: Dict, info: Dict, mode='panoramic', local
             goal_rgb = np.concatenate(np.split(goal_rgb[:,:,:,:3],goal_rgb.shape[0],axis=0),1).squeeze(axis=0)
         else:
             goal_rgb = goal_rgb[:,:,:3]
+        goal_rgb = cv2.putText(np.ascontiguousarray(goal_rgb), 'target_obs',(5,10),cv2.FONT_HERSHEY_SIMPLEX,0.4,(255,255,255))
         egocentric_view.append(goal_rgb.astype(np.uint8))
-    if "local_goal" in observation:
-        goal_rgb = (observation['local_goal']*255)
-        if not isinstance(goal_rgb, np.ndarray):
-            goal_rgb = goal_rgb.cpu().numpy()
-        if len(goal_rgb.shape) == 4:
-            goal_rgb = np.concatenate(np.split(goal_rgb[:,:,:,:3],goal_rgb.shape[0],axis=0),1).squeeze(axis=0)
-        else:
-            goal_rgb = goal_rgb[:,:,:3]
-        egocentric_view.append(goal_rgb.astype(np.uint8))
+
     if len(egocentric_view) > 0:
         if mode == 'panoramic':
             egocentric_view = np.concatenate(egocentric_view, axis=0)

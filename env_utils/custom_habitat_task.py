@@ -250,7 +250,6 @@ class CustomVisTargetSensor(Sensor):
     ):
         self._sim = sim
         self._dataset = dataset
-        print(config)
         use_depth = True#'DEPTH_SENSOR_0' in self._sim.config.sim_cfg.AGENT_0.SENSORS
         use_rgb = True#'RGB_SENSOR_0' in self._sim.config.AGENT_0.SENSORS
         self.channel = use_depth + 3 * use_rgb
@@ -345,6 +344,8 @@ from habitat.core.simulator import (
     Simulator,
 )
 from habitat.tasks.nav.nav import Success, DistanceToGoal
+
+
 @registry.register_measure(name='Success_woSTOP')
 class Success_woSTOP(Success):
     r"""Whether or not the agent succeeded at its task
@@ -383,6 +384,7 @@ class GoalIndex(Measure):
     def reset_metric(self, episode, task, *args: Any, **kwargs: Any):
         self.num_goals = len(episode.goals)
         self.goal_index = 0
+        self.all_done = False
         self.update_metric(episode=episode, task=task, *args, **kwargs)
 
     def update_metric(
@@ -393,13 +395,11 @@ class GoalIndex(Measure):
 
     def increase_goal_index(self):
         self.goal_index += 1
-        self._metric = {'curr_goal_index': self.goal_index,
+        self._metric = {'curr_goal_index': min(self.goal_index, self.num_goals-1),
                         'num_goals': self.num_goals}
-        if self.goal_index >= self.num_goals:
-            self._metric = {'curr_goal_index': self.goal_index-1,
-                            'num_goals': self.num_goals}
-            return True
-        else: return False
+        self.all_done = self.goal_index >= self.num_goals
+        return self.all_done
+
 
 
 @registry.register_measure(name='Custom_DistanceToGoal')
@@ -508,7 +508,7 @@ class SPL(Measure):
         self._agent_episode_distance += self._euclidean_distance(
             current_position, self._previous_position
         )
-        #rint(self._agent_episode_distance, self._start_end_episode_distance)
+
         self._previous_position = current_position
 
         self._metric =(

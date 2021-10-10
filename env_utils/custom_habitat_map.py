@@ -25,20 +25,10 @@ cv2 = try_cv2_import()
 # consider up to 5 agents
 AGENTS = {}
 LAST_INDEX = 10
-for a in range(5):
-    # activated, node, edge
-    AGENTS[a] = {"ACTIVATED":LAST_INDEX,
-                 "NODE": LAST_INDEX+1,
-                 "EDGE": LAST_INDEX+2}
-    LAST_INDEX += 3
-
-
 COMMON_NODE = LAST_INDEX
 COMMON_EDGE = LAST_INDEX + 1
-UNCERTAIN_NODE = LAST_INDEX + 2
-UNCERTAIN_EDGE = LAST_INDEX + 3
-PLANNED_PATH = LAST_INDEX + 4
-LAST_INDEX += 5
+CURR_NODE = LAST_INDEX + 2
+LAST_INDEX += 3
 
 MAP_THICKNESS_SCALAR: int = 1250
 
@@ -46,8 +36,6 @@ COORDINATE_MIN = -62.3241 - 1e-6
 COORDINATE_MAX = 90.0399 + 1e-6
 import torch
 import copy
-import matplotlib.pyplot as plt
-
 
 def to_grid(realworld_x, realworld_y, coordinate_min, coordinate_max, grid_resolution):
     grid_size = (
@@ -213,28 +201,9 @@ class TopDownGraphMap(Measure):
     def __init__(
         self, *args: Any, sim: Simulator, config: Config, **kwargs: Any
     ):
-        # Red [255,106,104], [237,120,120], [232, 135,135], [223, 165, 172]
-        # Blue [35, 139, 184], [58,149,192], [87, 161, 198], [142, 177, 205]
-        # Purple [145, 85, 176], [153, 115, 176], [165, 131, 185], [188, 159, 203]
-        # Orange [253, 153, 112] , Green [86, 184, 163]
-        # uncertain : green
-        maps.TOP_DOWN_MAP_COLORS[COMMON_NODE] = [153, 115, 176]
-        maps.TOP_DOWN_MAP_COLORS[COMMON_EDGE] = [165, 131, 185]
-        maps.TOP_DOWN_MAP_COLORS[UNCERTAIN_NODE] = [128,191,154]
-        maps.TOP_DOWN_MAP_COLORS[UNCERTAIN_EDGE] = [158,209,168]
-        maps.TOP_DOWN_MAP_COLORS[AGENTS[0]['ACTIVATED']] = [255,80,80]
-        maps.TOP_DOWN_MAP_COLORS[AGENTS[0]['NODE']] = [237,120,120]
-        maps.TOP_DOWN_MAP_COLORS[AGENTS[0]['EDGE']] = [223, 165, 172]
-        maps.TOP_DOWN_MAP_COLORS[AGENTS[1]['ACTIVATED']] = [0, 80, 184]
-        maps.TOP_DOWN_MAP_COLORS[AGENTS[1]['NODE']] = [58,149,192]
-        maps.TOP_DOWN_MAP_COLORS[AGENTS[1]['EDGE']] = [142, 177, 205]
-        maps.TOP_DOWN_MAP_COLORS[AGENTS[2]['ACTIVATED']] = [255, 200, 0]
-        maps.TOP_DOWN_MAP_COLORS[AGENTS[2]['NODE']] = [255, 182, 58]
-        maps.TOP_DOWN_MAP_COLORS[AGENTS[2]['EDGE']] = [255, 203, 112]
-        maps.TOP_DOWN_MAP_COLORS[AGENTS[3]['ACTIVATED']] = [0, 180, 158]
-        maps.TOP_DOWN_MAP_COLORS[AGENTS[3]['NODE']] = [0, 187, 140]
-        maps.TOP_DOWN_MAP_COLORS[AGENTS[3]['EDGE']] = [0, 224, 161]
-        maps.TOP_DOWN_MAP_COLORS[PLANNED_PATH] = [253, 153, 112]
+        maps.TOP_DOWN_MAP_COLORS[COMMON_NODE] = [119,91,138]
+        maps.TOP_DOWN_MAP_COLORS[COMMON_EDGE] = [189,164,204]
+        maps.TOP_DOWN_MAP_COLORS[CURR_NODE] = [94, 66, 118]
 
         maps.TOP_DOWN_MAP_COLORS[LAST_INDEX:] = cv2.applyColorMap(
             np.arange(256-LAST_INDEX, dtype=np.uint8), cv2.COLORMAP_JET
@@ -310,6 +279,24 @@ class TopDownGraphMap(Measure):
             self._ind_x_max = range_x[-1]
             self._ind_y_min = range_y[0]
             self._ind_y_max = range_y[-1]
+        else:
+            top_down_map = get_topdown_map(
+                self._sim,
+                self._map_resolution,
+                self._num_samples,
+                self._config.DRAW_BORDER,
+                loose_check=self.loose_check,
+                height_th=self.height_th,
+                draw_new_map=True
+            )
+
+            range_x = np.where(np.any(top_down_map, axis=1))[0]
+            range_y = np.where(np.any(top_down_map, axis=0))[0]
+            if len(range_x) > 0 and len(range_y) > 0:
+                self._ind_x_min = range_x[0]
+                self._ind_x_max = range_x[-1]
+                self._ind_y_min = range_y[0]
+                self._ind_y_max = range_y[-1]
 
         if self._config.FOG_OF_WAR.DRAW:
             self._fog_of_war_mask = np.zeros_like(top_down_map)
@@ -344,21 +331,20 @@ class TopDownGraphMap(Measure):
             self._coordinate_max,
             self._map_resolution,
         )
-
+        padd = int(self.point_padding/2)
         original = copy.deepcopy(        self._top_down_map[
-            t_x - self.point_padding : t_x + self.point_padding + 1,
-            t_y - self.point_padding : t_y + self.point_padding + 1,
+            t_x - padd : t_x + padd  + 1,
+            t_y - padd : t_y + padd  + 1,
 
         ])
-
         self._top_down_map[
-            t_x - self.point_padding - 1: t_x + self.point_padding + 2,
-            t_y - self.point_padding - 1 : t_y + self.point_padding + 2
+            t_x - self.point_padding  - 1: t_x + self.point_padding + 2,
+            t_y - self.point_padding  - 1 : t_y + self.point_padding + 2
         ] = point_type
 
         self._top_down_map[
-        t_x - self.point_padding: t_x + self.point_padding + 1,
-        t_y - self.point_padding: t_y + self.point_padding + 1
+        t_x - padd : t_x + padd  + 1,
+        t_y - padd : t_y + padd  + 1
         ] = original
 
     def _draw_goals_view_points(self, episode):
@@ -471,14 +457,6 @@ class TopDownGraphMap(Measure):
             color,
             self.line_thickness,
         )
-
-    def draw_paths(self, ps):
-        self.planned_path = ps
-        if len(ps) == 1:
-            self._draw_point(ps[0], PLANNED_PATH)
-        else:
-            for i in range(len(ps)-1):
-                self._draw_path(ps[i], ps[i+1], PLANNED_PATH)
 
     def reset_metric(self, *args: Any, episode, **kwargs: Any):
         self.node_list = None
@@ -611,7 +589,7 @@ class TopDownGraphMap(Measure):
 
         for node_position, node_color_index in draw_point_list:
             self._draw_point(node_position, node_color_index)
-        self._draw_boundary(self.node_list[curr_info['curr_node']], AGENTS[1]['ACTIVATED'])
+        self._draw_boundary(self.node_list[curr_info['curr_node']], CURR_NODE)
         self.curr_info = curr_info
 
     def update_fog_of_war_mask(self,agent_position, agent_rotation=None):

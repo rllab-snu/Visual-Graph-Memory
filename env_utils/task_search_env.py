@@ -36,19 +36,11 @@ class SearchEnv(RLEnv):
         self.render_map = getattr(config,'render_map',False)
         self.record_interval = config.VIS_INTERVAL
         self.record_dir = config.VIDEO_DIR
-        print('[SearchEnv] NOISY ACTUATION : ', self.noise)
 
         task_config = config.TASK_CONFIG
         task_config.defrost()
+        task_config.TASK.SUCCESS.SUCCESS_DISTANCE = config.RL.SUCCESS_DISTANCE
         if self.record or self.render_map:
-            task_config.TASK.TOP_DOWN_MAP.DRAW_SOURCE = True
-            task_config.TASK.TOP_DOWN_MAP.DRAW_SHORTEST_PATH = True
-            task_config.TASK.TOP_DOWN_MAP.FOG_OF_WAR.VISIBILITY_DIST = 2.0
-            task_config.TASK.TOP_DOWN_MAP.FOG_OF_WAR.FOV = 360
-            task_config.TASK.TOP_DOWN_MAP.FOG_OF_WAR.DRAW = True
-            task_config.TASK.TOP_DOWN_MAP.DRAW_VIEW_POINTS = False
-            task_config.TASK.TOP_DOWN_MAP.DRAW_GOAL_POSITIONS = True
-            task_config.TASK.TOP_DOWN_MAP.DRAW_GOAL_AABBS = False
             task_config.TASK.TOP_DOWN_GRAPH_MAP = config.TASK_CONFIG.TASK.TOP_DOWN_MAP.clone()
             task_config.TASK.TOP_DOWN_GRAPH_MAP.TYPE = "TopDownGraphMap"
             task_config.TASK.TOP_DOWN_GRAPH_MAP.MAP_RESOLUTION = 1250
@@ -152,28 +144,28 @@ class SearchEnv(RLEnv):
             self.mapper.update_graph(node_list, affinity, graph_mask, curr_info, flags)
 
     def build_path_follower(self, each_goal=False):
-        self.follower = ShortestPathFollower(self._env.sim, 0.8, False)\
+        self.follower = ShortestPathFollower(self._env.sim, self.success_distance, False)\
 
     def get_best_action(self, goal=None):
+        if self.follower is None:
+            self.build_path_follower()
         curr_goal = goal if goal is not None else self.curr_goal.position
         act = self.follower.get_next_action(curr_goal)
         return act
 
-    def set_random_goals(self, agent_id):
-        if not hasattr(self, 'random_goals'):
-            self.random_goals = [[] for _ in range(self.num_agents)]
-        pose = self.current_position[agent_id]
+    def set_random_goals(self):
+        pose = self.current_position
         try_num = 0
         while True:
             goal_pose = self.habitat_env._sim.sample_navigable_point()
-            same_floor = abs(goal_pose[1] - self.initial_pose[agent_id][1]) < 0.05
+            same_floor = abs(goal_pose[1] - self.initial_pose[1]) < 0.05
             far = self.habitat_env._sim.geodesic_distance(pose, goal_pose) > 7.
             if same_floor and far:
-                self.random_goals[agent_id] = goal_pose
+                self.random_goals = goal_pose
                 break
             try_num += 1
             if try_num > 100 and same_floor :
-                self.random_goals[agent_id] = goal_pose
+                self.random_goals = goal_pose
                 break
 
     def get_random_goal_action(self):
@@ -191,7 +183,7 @@ class SearchEnv(RLEnv):
 
     @property
     def curr_goal(self):
-        return self.current_episode.goals[self.curr_goal_idx]
+        return self.current_episode.goals[min(self.curr_goal_idx, len(self.current_episode.goals)-1)]
 
     def reset(self):
         self._previous_action = -1
@@ -227,11 +219,13 @@ class SearchEnv(RLEnv):
         return sim_scene
 
     def process_obs(self, obs):
+        obs['episode_id'] = self.current_episode.episode_id
         obs['step'] = self.time_t
         obs['position'] = self.current_position
+        obs['rotation'] = self.current_rotation
         obs['target_pose'] = self.curr_goal.position
         obs['distance'] = self.get_dist(obs['target_pose'])
-        obs['target_goal'] = obs['target_goal'][0]
+        obs['target_goal'] = obs['target_goal'][0] if self.num_goals == 1 else obs['target_goal']
         if self.return_have_been:
             if len(self.positions) < 10:
                 have_been = False
@@ -248,7 +242,10 @@ class SearchEnv(RLEnv):
         return obs
 
     def step(self, action):
+        if isinstance(action, dict):
+            action = action['action']
         self._previous_action = action
+
         obs, reward, done, self.info = super().step(self.action_dict[action])
 
         self.time_t += 1
@@ -382,6 +379,60 @@ class SearchEnv(RLEnv):
         dists = np.linalg.norm(np.array(other_poses).reshape(len(other_poses),3) - np.array(pose).reshape(1,3), axis=1)
         return dists
 
+
+class MultiSearchEnv(SearchEnv):
+    def step(self, action):
+        if isinstance(action, dict):
+            action = action['action']
+        self._previous_action = action
+        if 'STOP' in self.action_space.spaces and action == 0:
+            dist = self.get_dist(self.curr_goal.position)
+            if dist <= self.success_distance:
+                self.habitat_env.task.measurements.measures['goal_index'].increase_goal_index()
+                all_done = self.habitat_env.task.measurements.measures['goal_index'].increase_goal_index()
+                state = self.habitat_env.sim.get_agent_state()
+                obs = self.habitat_env._sim.get_observations_at(state.position, state.rotation)
+                obs.update(self.habitat_env.task.sensor_suite.get_observations(
+                    observations=obs,
+                    episode=self.habitat_env.current_episode,
+                    action=action,
+                    task=self.habitat_env.task,
+                ))
+                if all_done:
+                    done = True
+                    reward = self.SUCCESS_REWARD
+                else:
+                    done = False
+                    reward = 0
+            else:
+                obs, reward, done, self.info = super(SearchEnv, self).step(self.action_dict[action])
+        else:
+            obs, reward, done, self.info = super(SearchEnv, self).step(self.action_dict[action])
+
+        self.time_t += 1
+        self.info['length'] = self.time_t * done
+        self.info['episode'] = int(self.current_episode.episode_id)
+        self.info['distance_to_goal'] = self._previous_measure
+        self.info['step'] = self.time_t
+        self.positions.append(self.current_position)
+        self.obs = self.process_obs(obs)
+        self.total_reward += reward
+        self.prev_position = self.current_position.copy()
+        self.prev_rotation = self.current_rotation.copy()
+        if self.recording_now:
+            self.imgs.append(self.render('rgb'))
+            if done: self.save_video(self.imgs)
+        return self.obs, reward, done, self.info
+
+    @property
+    def curr_goal_idx(self):
+        if 'GOAL_INDEX' in self.config.TASK_CONFIG.TASK.MEASUREMENTS:
+            return self.habitat_env.get_metrics()['goal_index']['curr_goal_index']
+        else:
+            return 0
+
+    def _episode_success(self):
+        return self.habitat_env.task.measurements.measures['goal_index'].all_done
 
 if __name__ == '__main__':
 
