@@ -78,8 +78,9 @@ python train_rl.py --config configs/vgm.yaml --version EXPERIMENT_NAME --diff ha
 ### TODO
 
 - [x] VGM demo
-- [ ] RL training code
-- [ ] IL training code
-- [ ] PCL training repo
+- [x] RL training code
+- [x] IL training code
+- [x] PCL training repo
 - [x] collect IL data
+- [ ] evaluation code
 
