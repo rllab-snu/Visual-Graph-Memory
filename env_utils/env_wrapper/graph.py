@@ -1,7 +1,4 @@
 import torch
-import yacs
-import numpy as np
-import torch.nn.functional as F
 class Node(object):
     def __init__(self, info=None):
         self.node_num = None
@@ -33,7 +30,7 @@ class Graph(object):
         return len(self.node_position_list[b])
 
     def num_node_max(self):
-        return self.graph_mask.sum().max().long().item()
+        return self.graph_mask.sum(dim=1).max().long().item()
 
     def reset(self, B):
         if B: self.B = B

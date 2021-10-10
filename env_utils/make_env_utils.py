@@ -167,7 +167,6 @@ def construct_envs(config,env_class, mode='vectorenv', make_env_fn=make_env_fn, 
         task_config.DATASET.SPLIT = 'train' if i < num_processes else 'val'
         if len(training_scenes) > 0:
             task_config.DATASET.CONTENT_SCENES = scene_splits[i]
-        print(getattr(proc_config,'TASK_TYPE', True))
         task_config = add_panoramic_camera(task_config,
                                            has_target='search' in proc_config.ENV_NAME.lower() or getattr(proc_config,'TASK_TYPE', True))
 

@@ -122,7 +122,7 @@ class Env:
 
         self.run_mode = 'RL'
         self._episode_source = 'sample'
-        self._num_goals = 1
+        self._num_goals = getattr(self._config.ENVIRONMENT, 'NUM_GOALS', 1)
         self._agent_task = 'search'
         self._episode_iterator = {}
         self._episode_datasets = {}
@@ -201,77 +201,6 @@ class Env:
         self._episode_start_time = time.time()
         self._elapsed_steps = 0
         self._episode_over = False
-
-    def get_next_episode_multi_search(self, episode_id, scene_id):
-        found = False
-        try_num = 0
-        while True:
-            init_start_position = self._sim.sample_navigable_point()
-            random_angle = np.random.rand() * 2 * np.pi
-            init_start_rotation = q.from_rotation_vector([0, random_angle, 0])
-            self.sim.set_agent_state(init_start_position, init_start_rotation,0)
-            topdown_map = get_topdown_map(self.sim, (1250,1250), 10000, False)
-            map_size = (topdown_map != 0).sum()
-            if try_num > 50:
-                break
-            if map_size < 1000:
-                try_num += 1
-                continue
-            self.start_positions, self.start_rotations = [init_start_position], [init_start_rotation]
-            for agent_id in range(1,self.num_agents):
-                while True:
-                    random_dist = np.random.rand() * 0.3 + 0.2
-                    random_angle = np.random.rand() * 2 * np.pi
-                    new_start_position = [init_start_position[0] + random_dist * np.cos(random_angle),
-                                         init_start_position[1],
-                                         init_start_position[2] + random_dist * np.sin(random_angle)]
-                    random_angle = np.random.rand() * 2 * np.pi
-                    new_start_rotation = q.from_rotation_vector([0, random_angle, 0])
-                    if not self._sim.is_navigable(new_start_position): continue
-                    else:
-                        self.start_positions.append(new_start_position)
-                        self.start_rotations.append(new_start_rotation)
-                        self._sim.set_agent_state(new_start_position, new_start_rotation, agent_id)
-                        break
-            num_try = 0
-            goals = []
-            last_position = self.start_positions[0]
-            while True:
-                goal_position = self._sim.sample_navigable_point()
-                if abs(goal_position[1] - init_start_position[1]) > 0.5: continue
-
-                if len(goals) < 1:
-                    dist_from_start = self._sim.geodesic_distance(self.start_positions[0], goal_position)
-                    valid_dist = (dist_from_start < self.MAX_DIST) and (dist_from_start > self.MIN_DIST)
-                else:
-                    geodesic_dist = self._sim.geodesic_distance(goal_position, [goal.position for goal in goals])
-                    valid_dist = (geodesic_dist < self.MAX_DIST) and (geodesic_dist > self.MIN_DIST)
-                if self._sim.is_navigable(goal_position) and valid_dist:
-                    goal = NavigationGoal(**{'position': goal_position})
-                    goals.append(goal)
-                    last_position = goal_position
-                if len(goals) >= self._num_goals or ( num_try > 1000 and len(goals) >= self.num_agents ):
-                    found = True
-                    break
-                num_try += 1
-                if num_try > 100 and len(goals) == 0:
-                    found = False
-                    break
-            if found: break
-
-        if found:
-            self.curr_goal_idx = 0
-            episode_info = {'episode_id': self._current_scene_episode_idx,
-                          'scene_id': scene_id,
-                          'start_position': self.start_positions,
-                          'start_rotation': [rotation.components for rotation in self.start_rotations],
-                          'start_room': None,
-                          'goals': goals,
-                          'shortest_paths': None}
-            episode = NavigationEpisode(**episode_info)
-        else:
-            episode = None
-        return episode, found
 
     def get_next_episode_search(self, episode_id, scene_id):
         scene_name = scene_id.split('/')[-1][:-4]

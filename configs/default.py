@@ -144,13 +144,11 @@ _C.BC.use_linear_lr_decay=True
 _C.BC.backbone= 'resnet18'
 _C.BC.rnn_type= 'LSTM'
 _C.BC.num_recurrent_layers=2
-_C.BC.epoch = 2
-_C.BC.batch_size = 16
-_C.BC.num_steps = 64
+_C.BC.batch_size = 4
 _C.BC.max_demo_length = 100
 _C.BC.max_epoch = 100
 _C.BC.lr_decay = 0.5
-_C.BC.num_workers = 5
+_C.BC.num_workers = 0
 
 def get_config(
     config_paths: Optional[Union[List[str], str]] = None,
