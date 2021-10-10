@@ -43,15 +43,15 @@ To visualize the VGM generation, run:
 ```
 python vgm_demo.py --gpu 0 --num-proc 2
 ```
-This command will show the online VGM generation during the random exploration.
+This command will show the online VGM generation during *random exploration*.
 The rendering window will show the generated VGM and the observations as follows:
 
 ![vgm_demo_1](docs/vgm_demo_1.gif) ![vgm_demo_1](docs/vgm_demo_2.gif)
 
-Note that the top-down map and pose information is are only used for visualization, not for the graph generation. 
+Note that the top-down map and pose information are only used for visualization, not for the graph generation. 
 
 
-## IL training code
+## Imitation Learning
 1. Data generation
     ```
     python collect_IL_data.py --ep-per-env 200 --num-procs 4 --split train --data-dir /path/to/save/data
@@ -60,7 +60,7 @@ Note that the top-down map and pose information is are only used for visualizati
     
     You can find some examples of the collected data in *IL_data* folder, and look into them with  *show_IL_data.ipynb* 
 
-
+## Reinforcement Learning
 
 
 
