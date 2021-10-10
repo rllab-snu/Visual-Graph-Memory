@@ -222,7 +222,11 @@ class SearchEnv(RLEnv):
         obs['episode_id'] = self.current_episode.episode_id
         obs['step'] = self.time_t
         obs['position'] = self.current_position
+<<<<<<< HEAD
         obs['rotation'] = self.current_rotation.components
+=======
+        obs['rotation'] = self.current_rotation
+>>>>>>> e3ee0a7bfa218cee1dca5620c0d9db842578ab95
         obs['target_pose'] = self.curr_goal.position
         obs['distance'] = self.get_dist(obs['target_pose'])
         obs['target_goal'] = obs['target_goal'][0] if self.num_goals == 1 else obs['target_goal']

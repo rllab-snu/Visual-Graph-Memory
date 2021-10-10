@@ -60,6 +60,7 @@ Note that the top-down map and pose information are only used for visualization,
     ```
     This will generate the data for imitation learning.
     
+<<<<<<< HEAD
     You can find some examples of the collected data in *IL_data* folder, and look into them with  *show_IL_data.ipynb*.
 2. Training
     ```
@@ -74,6 +75,12 @@ To train the agent with reinforcement learning (PPO), run:
 ```
 python train_rl.py
 ```
+=======
+    You can find some examples of the collected data in *IL_data* folder, and look into them with  *show_IL_data.ipynb* 
+
+## Reinforcement Learning
+
+>>>>>>> e3ee0a7bfa218cee1dca5620c0d9db842578ab95
 
 
 ### TODO
