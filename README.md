@@ -59,8 +59,6 @@ Note that the top-down map and pose information are only used for visualization,
     python collect_IL_data.py --ep-per-env 200 --num-procs 4 --split train --data-dir /path/to/save/data
     ```
     This will generate the data for imitation learning.
-    
-<<<<<<< HEAD
     You can find some examples of the collected data in *IL_data* folder, and look into them with  *show_IL_data.ipynb*.
 2. Training
     ```
@@ -73,14 +71,8 @@ Note that the top-down map and pose information are only used for visualization,
 The reinforcement learning code is highly [based on habitat-lab/habitat_baselines](https://github.com/facebookresearch/habitat-lab/tree/master/habitat_baselines).
 To train the agent with reinforcement learning (PPO), run:
 ```
-python train_rl.py
+python train_rl.py --config configs/vgm.yaml --version EXPERIMENT_NAME --diff hard --render --stop --gpu 0
 ```
-=======
-    You can find some examples of the collected data in *IL_data* folder, and look into them with  *show_IL_data.ipynb* 
-
-## Reinforcement Learning
-
->>>>>>> e3ee0a7bfa218cee1dca5620c0d9db842578ab95
 
 
 ### TODO
