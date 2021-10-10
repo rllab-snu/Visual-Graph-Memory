@@ -4,7 +4,7 @@ parser.add_argument('--ep-per-env', type=int, default=200, help='number of episo
 parser.add_argument('--num-procs', type=int, default=4, help='number of processes to run simultaneously')
 parser.add_argument('--num-goals', type=int, default=5, help='number of goals per episodes')
 parser.add_argument("--gpu", type=str, default="0", help="gpus",)
-parser.add_argument('--split', type=str, default="train", choices=['train','val'], help='data split to use')
+parser.add_argument('--split', type=str, default="val", choices=['train','val'], help='data split to use')
 parser.add_argument('--data-dir', type=str, default="./IL_data", help='directory to save the collected data')
 args = parser.parse_args()
 import os
