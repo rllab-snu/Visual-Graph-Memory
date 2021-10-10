@@ -8,12 +8,12 @@ ENV_NAME: "SearchEnv"
 SIMULATOR_GPU_ID: 1
 TORCH_GPU_ID: 0
 
-NUM_PROCESSES: 2
+NUM_PROCESSES: 4
 NUM_VAL_PROCESSES: 0
 
 SENSORS: ["DEPTH_SENSOR", "RGB_SENSOR"]
 
-LOG_INTERVAL: 1
+LOG_INTERVAL: 10
 CHECKPOINT_INTERVAL: 200
 VIS_INTERVAL: 200
 
@@ -32,14 +32,7 @@ BC:
 RL:
   SUCCESS_REWARD: 10.0
   SUCESS_MEASURE: 'SUCCESS'
-  SLACK_REWARD: -0.01
+  SLACK_REWARD: -0.001
   PPO:
     num_mini_batch: 2
     num_steps: 256
-
-    pretrained_weights: "data/best_ckpts/0915_gmt_pcl_aux2_best.pt"
-    rl_pretrained: False
-    il_pretrained: True
-    pretrained_encoder: False
-    train_encoder: True
-    reset_critic: False

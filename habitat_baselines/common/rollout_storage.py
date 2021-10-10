@@ -24,7 +24,6 @@ class RolloutStorage:
         recurrent_hidden_state_size,
         num_recurrent_layers=1,
         OBS_LIST = [],
-        num_agents = 1
     ):
         self.observations = {}
         self.OBS_LIST = OBS_LIST
