@@ -73,14 +73,3 @@ To train the agent with reinforcement learning (PPO), run:
 ```
 python train_rl.py --config configs/vgm.yaml --version EXPERIMENT_NAME --diff hard --render --stop --gpu 0
 ```
-
-
-### TODO
-
-- [x] VGM demo
-- [x] RL training code
-- [x] IL training code
-- [x] PCL training repo
-- [x] collect IL data
-- [ ] evaluation code
-
