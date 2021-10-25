@@ -1,6 +1,4 @@
 # Visual-Graph-Memory
-This repository will be updated soon.
-
 This is an official GitHub Repository for paper "Visual Graph Memory with Unsupervised Representation for Visual Navigation", which is accepted as a regular paper (poster) in ICCV 2021.
 
 ## Setup
@@ -38,7 +36,7 @@ habitat-api (or habitat-lab)
               └── *.glb, *.navmeshs  
 ```
 
-otherwise, you should edit the data path in these lines.
+otherwise, you should edit the data path in [these](https://github.com/rllab-snu/Visual-Graph-Memory/blob/4103038781211ed880894650e7aa7245ea627027/env_utils/make_env_utils.py#L110-L114) [lines](https://github.com/rllab-snu/Visual-Graph-Memory/blob/4103038781211ed880894650e7aa7245ea627027/env_utils/custom_habitat_env.py#L85-L92).
 
 ## VGM Demonstration
 To visualize the VGM generation, run:
