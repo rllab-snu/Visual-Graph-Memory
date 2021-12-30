@@ -1,6 +1,6 @@
 # Visual-Graph-Memory
 This is an official GitHub Repository for paper "Visual Graph Memory with Unsupervised Representation for Visual Navigation", which is accepted as a regular paper (poster) in ICCV 2021.
-lklklklk
+
 ## Setup
 ### Requirements
 The source code is developed and tested in the following setting. 
