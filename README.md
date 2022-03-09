@@ -72,3 +72,21 @@ To train the agent with reinforcement learning (PPO), run:
 python train_rl.py --config configs/vgm.yaml --version EXPERIMENT_NAME --diff hard --render --stop --gpu 0
 ```
 
+
+## Evaluation 
+
+We provide evaluation code and the pretrained model.
+```
+python evaluate_random.py --config configs/vgm.yaml --version-name test --eval-ckpt VGM_ILRL.pth --stop --diff hard
+```
+
+You can use "evaluate_dataset.py" to evaluate VGM on public image-goal nav dataset (https://github.com/facebookresearch/image-goal-nav-dataset)
+```
+git clone https://github.com/facebookresearch/image-goal-nav-dataset.git
+python evaluate_dataset.py --config configs/vgm.yaml --version-name test --eval-ckpt VGM_ILRL.pth --stop --diff hard
+```
+In the above dataset, the provided pretrained model shows following performances.
+
+| Easy(SR) | Easy(SPL) | Medium(SR) | Medium(SPL) | Hard(SR) | Hard(SPL) | Overall(SR) | Overall(SPL) |
+|:--------:|:---------:|:----------:|:-----------:|:--------:|:---------:|:-----------:|:------------:|
+|   0.76   |    0.40   |    0.76    |     0.56    |   0.62   |    0.49   |     0.71    |     0.48     |
