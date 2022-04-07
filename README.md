@@ -90,3 +90,22 @@ In the above dataset, the provided pretrained model shows following performances
 | Easy(SR) | Easy(SPL) | Medium(SR) | Medium(SPL) | Hard(SR) | Hard(SPL) | Overall(SR) | Overall(SPL) |
 |:--------:|:---------:|:----------:|:-----------:|:--------:|:---------:|:-----------:|:------------:|
 |   0.76   |    0.40   |    0.76    |     0.56    |   0.62   |    0.49   |     0.71    |     0.48     |
+
+
+
+
+Also, our VGM model shows following performances on NRNS Image-Goal Navigation dataset (https://meerahahn.github.io/nrns/data)
+**- Straight**
+
+
+| Easy(SR) | Easy(SPL) | Medium(SR) | Medium(SPL) | Hard(SR) | Hard(SPL) | Overall(SR) | Overall(SPL) |
+|:--------:|:---------:|:----------:|:-----------:|:--------:|:---------:|:-----------:|:------------:|
+|   0.81   |    0.54   |    0.82    |     0.70    |   0.67   |    0.54   |     0.77    |     0.60     |
+
+
+**- Curved**
+
+
+| Easy(SR) | Easy(SPL) | Medium(SR) | Medium(SPL) | Hard(SR) | Hard(SPL) | Overall(SR) | Overall(SPL) |
+|:--------:|:---------:|:----------:|:-----------:|:--------:|:---------:|:-----------:|:------------:|
+|   0.81   |    0.46   |    0.79    |     0.60    |   0.62   |    0.47   |     0.74    |     0.51     |
