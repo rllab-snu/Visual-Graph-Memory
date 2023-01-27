@@ -95,6 +95,7 @@ In the above dataset, the provided pretrained model shows following performances
 
 
 Also, our VGM model shows following performances on NRNS Image-Goal Navigation dataset (https://meerahahn.github.io/nrns/data)
+
 **- Straight**
 
 
